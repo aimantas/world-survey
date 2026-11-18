@@ -1,0 +1,234 @@
+/* World Survey reference pages (/lists/ and /compare/). Loaded after encyclopedia.css: same tokens, same sheet
+   furniture; only what the ranked tables, the flag sheet and the side-by-side comparison need is added here. */
+
+/* ---------- Page grid ---------- */
+
+/* The side card spans 30 grid rows (encyclopedia.css). These pages have fewer rows than that, and every empty
+   row would still add its gap below the content, so the spacing between rows is carried by margins instead. */
+@media (min-width: 1100px) {
+  .grid--ref { row-gap: 0; }
+  .grid--ref > * + * { margin-top: 34px; }
+  .grid--ref > .side { margin-top: 0; }
+}
+
+/* ---------- Title block ---------- */
+
+/* List and comparison headings are sentences, not single place names: a step below the country sheet's H1. */
+.title h1.list, .title h1.pair { font-size: clamp(25px, 3.5vw, 42px); line-height: 1.08; letter-spacing: 0.09em; }
+.title h1.pair i { font-style: normal; font-weight: 360; letter-spacing: 0.08em; color: var(--ink-2); }
+
+.tb-duo { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--ink); }
+.tb-duo > a { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 14px; padding: 12px 16px 13px; color: var(--ink); text-decoration: none; min-width: 0; }
+.tb-duo > a + a { border-left: 1px solid var(--ink); }
+.tb-duo > a:hover { background: var(--overprint-soft); color: var(--overprint-deep); }
+.tb-duo img { grid-row: 1 / span 2; width: 72px; height: 54px; object-fit: cover; border: 1px solid var(--ink); background: var(--paper-deep); }
+.tb-duo b { align-self: end; font-weight: 680; font-stretch: 112%; font-size: 15px; line-height: 1.2; letter-spacing: 0.12em; text-transform: uppercase; overflow-wrap: anywhere; }
+.tb-duo span { align-self: start; font: italic 400 14px/1.3 var(--serif); color: var(--ink-3); }
+
+/* ---------- Tools above a table (added by reference.js; without it the full table simply shows) ---------- */
+
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 14px; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ink); background: var(--card); }
+.seg button {
+  appearance: none;
+  border: 0;
+  border-left: 1px solid var(--hair);
+  margin-left: -1px;
+  background: none;
+  color: var(--ink-2);
+  min-height: 36px;
+  padding: 8px 10px 7px;
+  font: 640 12.5px/1.2 var(--sans);
+  font-stretch: 76%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.seg button:hover { background: var(--overprint-soft); color: var(--overprint-deep); }
+.seg button[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
+.tools input {
+  flex: 1 1 170px;
+  min-width: 0;
+  max-width: 260px;
+  height: 38px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: #fff;
+  color: var(--ink);
+  font: 400 15px/1.2 var(--sans);
+}
+.tools input::placeholder { color: var(--ink-3); }
+.tools input:focus-visible { outline: 2px solid var(--overprint); outline-offset: 0; }
+.tools output { font: italic 400 13.5px/1.3 var(--serif); color: var(--ink-3); }
+/* The flag sheet's filter lives in its own grid row; without the script that row is empty and takes no space. */
+div[data-enhance]:empty { display: none; }
+div[data-enhance] .tools { margin: 0; }
+
+/* ---------- Ranked tables ---------- */
+
+.rtable .rk { width: 1%; padding-right: 16px; white-space: nowrap; }
+.rtable tbody .rk { font: 600 13px/1.2 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.rtable .cn { width: 99%; }
+.rtable .rg { padding-left: 24px; white-space: nowrap; }
+.rtable td.r, .rtable th.r { padding-left: 22px; }
+.rtable tbody th { font-weight: 600; }
+/* The name column takes the slack, so the flag must keep its own width; it sits on the first line of the name. */
+.rtable .flagcell { vertical-align: top; padding-top: 11px; }
+.rtable thead .flagcell { padding-top: 0; }
+.rtable .flagcell img { max-width: none; }
+.rtable td .yr, .vs td .yr { display: inline-block; min-width: 2.6em; margin-left: 4px; text-align: right; }
+.rtable .nd, .vs .nd, .facts .nd { font: italic 400 13.5px/1.3 var(--serif); color: var(--ink-3); }
+.rtable .nbl { margin-top: 2px; }
+.rtable .nbl a { color: var(--ink-3); font-weight: 400; text-decoration: underline; text-decoration-color: var(--hair); }
+.rtable .nbl a:hover { color: var(--overprint-deep); text-decoration-color: currentColor; }
+.rtable .coord .num { white-space: nowrap; }
+.rtable .coord .num + .num { margin-left: 10px; }
+.rtable .cp { white-space: nowrap; padding-right: 18px; }
+.rtable tr[hidden] { display: none; }
+.ruled caption a { color: var(--water-ink); }
+
+/* Sortable headers: the label becomes a button; the active column carries a benchmark triangle. */
+.rtable thead button {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.rtable thead button:hover { color: var(--overprint-deep); }
+.rtable thead button::after {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 6px;
+  margin-left: 5px;
+  background: var(--hair);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.rtable th[aria-sort='ascending'] button::after { background: var(--overprint); }
+.rtable th[aria-sort='descending'] button::after { background: var(--overprint); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+
+/* ---------- More lists (side card) and index rows ---------- */
+
+.lnav { list-style: none; margin: 0; padding: 0; }
+.lnav li { border-bottom: 1px solid var(--hair); }
+.lnav li:first-child { border-top: 1px solid var(--hair); }
+.lnav a { position: relative; display: block; padding: 8px 2px 7px 18px; color: var(--ink); text-decoration: none; font-size: 14.5px; line-height: 1.3; }
+.lnav a::before { content: ''; position: absolute; left: 2px; top: 0.95em; width: 9px; height: 8px; background: var(--ink-3); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.lnav a:hover { background: var(--overprint-soft); color: var(--overprint-deep); }
+.lnav a:hover::before, .lnav a[aria-current]::before { background: var(--overprint); }
+.lnav a[aria-current] { font-weight: 640; }
+
+.index { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr)); column-gap: 44px; }
+.index li { padding: 12px 0 11px; border-bottom: 1px solid var(--hair); }
+.index .row { display: flex; align-items: baseline; gap: 10px; }
+.index .name { position: relative; padding-left: 18px; color: var(--ink); text-decoration: none; font-weight: 680; font-stretch: 112%; font-size: 14.5px; letter-spacing: 0.12em; text-transform: uppercase; }
+.index .name::before { content: ''; position: absolute; left: 1px; top: 0.42em; width: 9px; height: 8px; background: var(--ink-3); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.index .name:hover { color: var(--overprint-deep); }
+.index .name:hover::before { background: var(--overprint); }
+.index .row::after { content: ''; order: 1; flex: 1; min-width: 16px; border-bottom: 1.5px dotted var(--ink-3); transform: translateY(-4px); }
+.index .fig { order: 2; font: 600 13.5px/1 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.index .sub { margin: 4px 0 0 18px; font: italic 400 14.5px/1.4 var(--serif); color: var(--ink-3); }
+
+/* ---------- Flags of the world ---------- */
+
+.flaggrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 18px 14px; }
+.flaggrid a { display: block; color: var(--ink); text-decoration: none; font-size: 13.5px; line-height: 1.25; }
+.flaggrid img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--ink); background: var(--paper-deep); margin-bottom: 6px; }
+.flaggrid a:hover { color: var(--overprint-deep); }
+.flaggrid a:hover img { outline: 2px solid var(--overprint); outline-offset: 1px; }
+.flaggrid li[hidden] { display: none; }
+.reg[hidden] { display: none; }
+
+/* ---------- Side-by-side comparison ---------- */
+
+.vs th, .vs td { vertical-align: top; }
+.vs tbody th { width: 24%; }
+.vs td { width: 25%; }
+.vs td.d { width: 26%; padding-right: 0; }
+.vs .big .num { font-weight: 650; }
+.vs .who { font-weight: 640; }
+.vs .by { display: block; font: italic 400 13.5px/1.35 var(--serif); color: var(--ink-3); }
+.vs .txt { font-size: 14px; line-height: 1.4; }
+.vs thead th.c { font-stretch: 100%; letter-spacing: 0.12em; color: var(--ink); }
+
+.facts .num { font-size: 14px; }
+.pairs { list-style: none; margin: 0; padding: 0; }
+.pairs li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 10px; padding: 9px 0 8px; border-bottom: 1px solid var(--hair); }
+.pairs img { width: 28px; height: 21px; margin-top: 2px; border: 1px solid var(--hair); object-fit: cover; background: var(--paper-deep); }
+.pairs .name { font-weight: 640; font-size: 15px; }
+.pairs .name a { color: var(--ink); text-decoration: none; }
+.pairs .name a:hover { color: var(--overprint-deep); text-decoration: underline; }
+.pairs .vsl { grid-column: 2; font-size: 14.5px; line-height: 1.55; color: var(--ink-3); }
+.pairs .vsl a { color: var(--ink); text-decoration-color: var(--ink-3); }
+.pairs .vsl a:hover { color: var(--overprint-deep); text-decoration-color: currentColor; }
+.pairs--cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(460px, 100%), 1fr)); column-gap: 44px; }
+/* Sub-headings inside a section: the label voice the country pages use for theirs (.more h3). */
+.also { margin: 0 0 8px; font-weight: 640; font-stretch: 80%; font-size: 11px; line-height: 1.3; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
+.clist + .also { margin-top: 26px; }
+.clist .km { margin-left: auto; padding-left: 8px; font: 500 12.5px/1 var(--mono); color: var(--ink-3); white-space: nowrap; }
+
+/* ---------- Pair map: second hatch, the line between the capitals, flat inset ---------- */
+
+.map .m-l--p { font-size: 24px; font-weight: 780; font-stretch: 125%; letter-spacing: 0.15em; fill: var(--ink); stroke-width: 6px; }
+.map .m-link-c { fill: none; stroke: var(--paper); stroke-width: 5.5; stroke-linecap: round; }
+.map .m-link { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 7 5; }
+.map--pair .m-in { filter: none; }
+
+@media (max-width: 640px) {
+  .map .m-l--p { font-size: 32px; }
+  .map .m-link-c { stroke-width: 8; }
+  .map .m-link { stroke-width: 3.2; stroke-dasharray: 11 8; }
+
+  .tb-duo > a { grid-template-columns: 1fr; gap: 6px; padding: 10px 12px 11px; }
+  .tb-duo img { grid-row: auto; width: 60px; height: 45px; }
+  .tb-duo b { font-size: 13px; letter-spacing: 0.1em; }
+
+  .rtable .rk { padding-right: 8px; }
+  .rtable thead th { letter-spacing: 0.08em; }
+  .rtable thead th.r, .rtable td.r .src { white-space: normal; }
+  .rtable thead .rk { letter-spacing: 0.06em; }
+  .rtable tbody .rk { font-size: 12px; }
+  .rtable td.r, .rtable th.r { padding-left: 8px; }
+  .rtable td .yr { min-width: 0; }
+  .rtable.multi td.r { white-space: normal; }
+  .rtable.multi td .yr { display: block; margin: 2px 0 0; }
+  .rtable thead button::after { display: none; }
+  .rtable th[aria-sort] button::after { display: inline-block; }
+  .rtable .coord .num { display: block; }
+  .rtable .coord .num + .num { margin-left: 0; }
+  .rtable .cp { white-space: normal; padding-right: 8px; }
+  .ctable.rtable .flagcell { width: 30px; padding-right: 6px; }
+  .tools input { max-width: none; }
+  .seg button { padding: 8px 8px 7px; font-size: 11.5px; letter-spacing: 0.1em; }
+  .flaggrid { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 14px 10px; }
+  .flaggrid a { font-size: 12.5px; }
+
+  /* Comparison as stacked rows: the measure, then the two figures side by side, then the difference. */
+  .vs thead { display: none; }
+  .vs { display: flex; flex-direction: column; }
+  .vs tbody { display: block; }
+  .vs caption { order: 2; padding-top: 12px; }
+  .vs tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 14px; padding: 10px 0 9px; border-bottom: 1px solid var(--hair); }
+  .vs th, .vs td { display: block; width: auto; padding: 0; border: 0; }
+  .vs tbody th { grid-column: 1 / -1; width: auto; margin-bottom: 5px; }
+  .vs tbody th .src { display: inline; margin-left: 6px; }
+  .vs td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 3px; font: 640 9.5px/1.2 var(--sans); font-stretch: 76%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .vs td.d { grid-column: 1 / -1; width: auto; margin-top: 6px; }
+  .vs td.d .by { display: inline; margin-left: 6px; }
+}
+
+@media (max-width: 380px) {
+  .rtable.tight .flagcell { display: none; }
+}
+
+@media print {
+  .tools { display: none; }
+}

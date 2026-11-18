@@ -1,0 +1,14 @@
+{
+  // World Survey is a static site: assets only, no Worker code. Deploy to Cloudflare after `python3 build.py`:
+  //   npx wrangler deploy
+  // To serve it on your own domain, add a route, for example:
+  //   "routes": [{ "pattern": "geography.example.com", "custom_domain": true }]
+  "name": "world-survey",
+  "compatibility_date": "2026-10-28",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

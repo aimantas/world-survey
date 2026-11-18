@@ -1,0 +1,72 @@
+name: WorldSurvey
+options:
+  bundleIdPrefix: com.aimantas
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""  # your Apple team ID, needed only to run on a device
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+targets:
+  WorldSurvey:
+    type: application
+    platform: iOS
+    sources:
+      - path: WorldSurvey
+    info:
+      path: WorldSurvey/Info.plist
+      properties:
+        CFBundleDisplayName: World Survey
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: Paper
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        ITSAppUsesNonExemptEncryption: false
+        LSApplicationCategoryType: public.app-category.education
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.aimantas.WorldSurvey
+        PRODUCT_NAME: WorldSurvey
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_PREVIEWS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+  WorldSurveyTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: WorldSurveyTests
+    dependencies:
+      - target: WorldSurvey
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.aimantas.WorldSurveyTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/WorldSurvey.app/WorldSurvey
+        BUNDLE_LOADER: $(TEST_HOST)
+schemes:
+  WorldSurvey:
+    build:
+      targets:
+        WorldSurvey: all
+        WorldSurveyTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - WorldSurveyTests
+    archive:
+      config: Release

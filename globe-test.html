@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<title>Globe engine test harness</title>
+<style>
+  @font-face { font-family: 'Archivo'; src: url(assets/fonts/archivo-latin-wdth-normal.woff2) format('woff2'); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; }
+  @font-face { font-family: 'Source Serif 4'; src: url(assets/fonts/source-serif-4-latin-wght-italic.woff2) format('woff2'); font-style: italic; font-weight: 200 900; font-display: swap; }
+  @font-face { font-family: 'JetBrains Mono'; src: url(assets/fonts/jetbrains-mono-latin-wght-normal.woff2) format('woff2'); font-weight: 100 800; font-display: swap; }
+  :root { --paper: #f4f5f0; --ink: #1b232b; --magenta: #c3177b; --blue: #2f6f99; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--paper); color: var(--ink); font: 13px/1.35 'Archivo', system-ui, sans-serif; }
+  body { overflow: hidden; }
+  /* stand-in for the lead's map sheet: neatline + faint paper grain */
+  .sheet { position: fixed; inset: 0; background:
+      radial-gradient(1200px 800px at 30% 20%, rgba(255,255,255,.55), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(27,35,43,.018) 0 1px, transparent 1px 3px), var(--paper); }
+  .neat { position: fixed; inset: 14px; border: 1.5px solid var(--ink); pointer-events: none; }
+  .neat::after { content: ''; position: absolute; inset: 4px; border: .6px solid rgba(27,35,43,.55); }
+  #globe { position: fixed; inset: 20px; }
+  .panel { position: fixed; left: 28px; top: 28px; width: 236px; max-height: calc(100% - 56px); overflow: auto; background: rgba(244,245,240,.94);
+    border: 1px solid var(--ink); padding: 10px 10px 8px; z-index: 5; }
+  .panel h1 { margin: 0 0 6px; font-size: 11px; font-stretch: 125%; letter-spacing: .22em; text-transform: uppercase; }
+  .panel h2 { margin: 10px 0 4px; font-size: 9.5px; font-stretch: 112%; letter-spacing: .2em; text-transform: uppercase; color: #55606b; }
+  .panel button { font: 600 10.5px/1 'Archivo', sans-serif; font-stretch: 105%; letter-spacing: .04em; padding: 5px 6px; margin: 0 3px 4px 0; border: 1px solid var(--ink);
+    background: var(--paper); color: var(--ink); cursor: pointer; border-radius: 0; }
+  .panel button:hover { background: #e7e9e3; }
+  .panel button.m { border-color: var(--magenta); color: var(--magenta); }
+  .panel .row { display: flex; flex-wrap: wrap; }
+  .stats { position: fixed; right: 28px; top: 28px; z-index: 5; font: 500 11px/1.45 'JetBrains Mono', monospace; background: rgba(244,245,240,.94);
+    border: 1px solid var(--ink); padding: 6px 8px; min-width: 210px; white-space: pre; }
+  .readout { position: fixed; right: 28px; bottom: 28px; z-index: 5; font: 500 11px/1.4 'JetBrains Mono', monospace; color: var(--ink); text-align: right; white-space: pre; }
+  .log { position: fixed; left: 28px; bottom: 28px; z-index: 5; font: 500 11px/1.4 'JetBrains Mono', monospace; color: var(--magenta); max-width: 60vw; white-space: pre; }
+  .hide-ui .panel, .hide-ui .stats { display: none; }
+  @media (max-width: 700px) {
+    .panel { left: 18px; right: 18px; top: auto; bottom: 18px; width: auto; max-height: 34vh; padding: 6px; }
+    .panel h2 { display: none; }
+    .stats { right: 18px; top: 18px; min-width: 0; font-size: 10px; }
+    .readout { display: none; }
+    .log { left: 18px; bottom: auto; top: 18px; font-size: 10px; }
+    #globe { inset: 14px; }
+    .neat { inset: 8px; }
+  }
+</style>
+<script src="vendor/topojson/topojson-client.min.js"></script>
+</head>
+<body>
+<div class="sheet"></div>
+<div class="neat"></div>
+<div id="globe"></div>
+<div class="panel" id="panel">
+  <h1>Globe engine</h1>
+  <h2>Camera</h2>
+  <div class="row">
+    <button data-a="flyRandom">Fly: random</button>
+    <button data-a="flyEurope">Fly: small EU</button>
+    <button data-a="flyFar">Fly: far hop</button>
+    <button data-a="overview">Overview</button>
+    <button data-a="idle">Idle spin</button>
+    <button data-a="offset">View offset</button>
+  </div>
+  <h2>Highlights</h2>
+  <div class="row">
+    <button data-a="hl:target">Target</button>
+    <button data-a="hl:focus">Focus</button>
+    <button data-a="hl:correct">Correct</button>
+    <button data-a="hl:wrong" class="m">Wrong</button>
+    <button data-a="hlNeighbours">Neighbours</button>
+    <button data-a="hlTiny">Tiny target</button>
+    <button data-a="clearHl">Clear</button>
+  </div>
+  <h2>Marks</h2>
+  <div class="row">
+    <button data-a="pins" class="m">Pins</button>
+    <button data-a="arc" class="m">Arc + label</button>
+    <button data-a="reveal" class="m">Reveal</button>
+    <button data-a="clearMarks">Clear</button>
+  </div>
+  <h2>Map</h2>
+  <div class="row">
+    <button data-a="labelsAuto">Labels auto</button>
+    <button data-a="labelsList">Labels list</button>
+    <button data-a="labelsOff">Labels off</button>
+    <button data-a="survey">Surveyed: random</button>
+    <button data-a="surveyMore">+ survey 8</button>
+    <button data-a="surveyOff">Survey off</button>
+  </div>
+  <div class="row">
+    <button data-a="region:Europe">Europe</button>
+    <button data-a="region:Africa">Africa</button>
+    <button data-a="region:Asia">Asia</button>
+    <button data-a="region:Americas">Americas</button>
+    <button data-a="region:Oceania">Oceania</button>
+    <button data-a="region:null">No region</button>
+  </div>
+  <h2>Engine</h2>
+  <div class="row">
+    <button data-a="interactive">Interactive</button>
+    <button data-a="quality">Quality</button>
+    <button data-a="bench">Bench 5 s</button>
+    <button data-a="hideUi">Hide UI</button>
+  </div>
+</div>
+<div class="stats" id="stats">loading…</div>
+<div class="readout" id="readout"></div>
+<div class="log" id="log"></div>
+<script type="module">
+import { loadData } from './src/data.js';
+import { Globe } from './src/globe/globe.js';
+
+const $ = (id) => document.getElementById(id);
+const log = (s) => { $('log').textContent = s; };
+const params = new URLSearchParams(location.search);
+const t0 = performance.now();
+const data = await loadData();
+const tData = performance.now() - t0;
+const globe = new Globe($('globe'), { data, quality: params.get('q') || 'auto', intro: params.get('intro') !== '0' });
+window.globe = globe; window.data = data;
+await globe.ready;
+const tReady = performance.now() - t0;
+globe.setInteractive(true);
+
+// ---- stats: rendered frames per second, rAF fps, last frame calls/triangles ----
+let frames = 0, last = performance.now(), fps = 0, lastCalls = 0, lastTris = 0, cpu = 0;
+const frameTimes = [];
+globe.on('frame', (p) => { frames++; lastCalls = p.calls; lastTris = p.triangles; frameTimes.push(p.dt); if (frameTimes.length > 120) frameTimes.shift(); });
+const mem = () => { const m = globe.renderer.info.memory; return `${m.geometries} geo / ${m.textures} tex`; };
+function tick() {
+  const now = performance.now();
+  if (now - last >= 500) { fps = frames / ((now - last) / 1000); frames = 0; last = now; }
+  const d = globe.device;
+  $('stats').textContent =
+    `fps (rendered)  ${fps.toFixed(0)}\n` +
+    `draw calls      ${lastCalls}\n` +
+    `triangles       ${lastTris.toLocaleString('en-GB')}\n` +
+    `quality         ${globe.quality}  dpr ${globe.renderer.getPixelRatio()}\n` +
+    `relief          ${globe.reliefK}k\n` +
+    `memory          ${mem()}\n` +
+    `data ${tData.toFixed(0)} ms  ready ${tReady.toFixed(0)} ms\n` +
+    `bake ${globe.bakeMs.toFixed(0)} ms  lines ${globe.linesMs.toFixed(0)} ms\n` +
+    `gpu ${d.gpu.replace(/ANGLE \(|\)$/g, '').slice(0, 40)}`;
+  requestAnimationFrame(tick);
+}
+tick();
+window.__stats = () => ({ fps, calls: lastCalls, triangles: lastTris, quality: globe.quality, relief: globe.reliefK, dpr: globe.renderer.getPixelRatio(), gpu: globe.device.gpu, tData, tReady, bake: globe.bakeMs, lines: globe.linesMs });
+
+// ---- view readout (the 'view' event) ----
+const fmt = (v, p, n) => `${Math.abs(v).toFixed(2)}°${v >= 0 ? p : n}`;
+globe.on('view', ({ center, kmPerPx, distance }) => {
+  $('readout').textContent = `${fmt(center[0], 'N', 'S')}  ${fmt(center[1], 'E', 'W')}\n1 : ${Math.round(kmPerPx / 2.6458e-7).toLocaleString('en-GB')}  (${kmPerPx.toFixed(2)} km/px)\nd ${distance.toFixed(3)} R`;
+});
+globe.on('pick', (e) => {
+  const c = e.iso3 && data.byIso.get(e.iso3);
+  log(`pick ${e.iso3 || 'sea'}${c ? ' · ' + c.name : ''}${e.tiny ? ' (tiny radius)' : ''}${e.latLng ? `  ${e.latLng[0].toFixed(2)}, ${e.latLng[1].toFixed(2)}` : ''}`);
+  if (e.iso3) { globe.clearHighlights(); globe.highlight(e.iso3, 'focus'); }
+});
+globe.on('longpress', (e) => { if (e.latLng) { globe.dropPin(e.latLng, 'guess'); log(`longpress pin ${e.latLng.map((v) => v.toFixed(2)).join(', ')}`); } });
+let hoverIso = null;
+globe.on('hover', (e) => { if (e.iso3 !== hoverIso) { hoverIso = e.iso3; const c = e.iso3 && data.byIso.get(e.iso3); if (c) log(`hover ${c.name}`); } });
+
+// ---- actions ----
+const sovereign = data.sovereign.filter((c) => c.inMap);
+const rnd = (a) => a[Math.floor(Math.random() * a.length)];
+const smallEU = ['LUX', 'SVN', 'BEL', 'NLD', 'CHE', 'AUT', 'CZE', 'SVK', 'HRV', 'EST', 'LVA', 'LTU', 'MNE', 'ALB', 'MKD', 'MDA', 'DNK'];
+let current = 'LTU', surveyed = new Map(), labelsOn = false, idleOn = false, interactive = true;
+const actions = {
+  async flyRandom() { current = rnd(sovereign).iso3; globe.clearHighlights(); log(`fly ${current}`); globe.highlight(current, 'target'); const r = await globe.flyTo({ iso3: current }); log(`fly ${current} ${r.completed ? 'done' : 'interrupted'}`); },
+  async flyEurope() { current = rnd(smallEU); globe.clearHighlights(); globe.highlight(current, 'target'); for (const n of data.byIso.get(current).borders) globe.highlight(n, 'neighbour'); log(`fly ${current}`); await globe.flyTo({ iso3: current }); },
+  async flyFar() { const here = globe.getView().center; const far = sovereign.filter((c) => Math.abs(c.labelLatLng[1] - here[1]) > 120); current = rnd(far).iso3; globe.clearHighlights(); globe.highlight(current, 'target'); log(`far hop ${current}`); await globe.flyTo({ iso3: current }); },
+  overview() { globe.overview(); },
+  idle() { idleOn = !idleOn; globe.idle(idleOn); log(`idle ${idleOn}`); },
+  offset() { const o = globe._offsetTarget; const next = o.x || o.y ? { x: 0, y: 0 } : innerWidth > 700 ? { x: 130, y: 0 } : { x: 0, y: -90 }; globe.setViewOffset(next); log(`offset ${next.x}, ${next.y}`); },
+  hlNeighbours() { const c = data.byIso.get(current); for (const n of c.borders) globe.highlight(n, 'neighbour'); },
+  hlTiny() { const t = rnd(data.sovereign.filter((c) => c.tiny)); current = t.iso3; globe.clearHighlights(); globe.highlight(current, 'target'); globe.flyTo({ iso3: current }); log(`tiny ${t.name}`); },
+  clearHl() { globe.clearHighlights(); },
+  pins() { const c = data.byIso.get(current); globe.dropPin(c.capitalLatLng, 'capital'); const g = [c.capitalLatLng[0] + (Math.random() - 0.5) * 8, c.capitalLatLng[1] + (Math.random() - 0.5) * 10]; setTimeout(() => globe.dropPin(g, 'guess'), 180); setTimeout(() => globe.dropPin(c.labelLatLng, 'answer'), 360); },
+  arc() { const a = rnd(sovereign), b = data.byIso.get(current); globe.drawArc(a.capitalLatLng, b.capitalLatLng, { label: `${Math.round(dist(a.capitalLatLng, b.capitalLatLng)).toLocaleString('en-GB')} km` }); },
+  async reveal() {
+    // the game's reveal: guess pin, fly to the answer, outline it, arc + distance, neighbours, capital
+    globe.clearMarks(); globe.clearHighlights();
+    const ans = data.byIso.get(current);
+    const guess = [ans.labelLatLng[0] + 6 + Math.random() * 6, ans.labelLatLng[1] - 10 - Math.random() * 8];
+    globe.dropPin(guess, 'guess');
+    await globe.flyTo({ iso3: ans.iso3 });
+    globe.highlight(ans.iso3, 'target');
+    for (const n of ans.borders) globe.highlight(n, 'neighbour');
+    globe.drawArc(guess, ans.labelLatLng, { label: `${Math.round(dist(guess, ans.labelLatLng)).toLocaleString('en-GB')} km` });
+    setTimeout(() => globe.dropPin(ans.capitalLatLng, 'capital'), 450);
+    globe.showLabels([{ iso3: ans.iso3, strong: true }, ...ans.borders.map((iso3) => ({ iso3 }))]);
+    labelsOn = true;
+  },
+  clearMarks() { globe.clearMarks(); },
+  labelsAuto() { globe.showLabels('auto'); },
+  labelsList() { const c = data.byIso.get(current); globe.showLabels([{ iso3: current, strong: true }, ...c.borders.map((iso3) => ({ iso3 }))]); },
+  labelsOff() { globe.showLabels(null); },
+  survey() { surveyed = new Map(); for (const c of sovereign) if (Math.random() < 0.35) surveyed.set(c.iso3, 1 + Math.floor(Math.random() * 3)); globe.setSurveyed(surveyed); log(`surveyed ${surveyed.size}`); },
+  surveyMore() { const left = sovereign.filter((c) => !surveyed.get(c.iso3)); for (let i = 0; i < 8 && left.length; i++) surveyed.set(left.splice(Math.floor(Math.random() * left.length), 1)[0].iso3, 3); globe.setSurveyed(surveyed); log(`surveyed ${surveyed.size}`); },
+  surveyOff() { globe.setSurveyed(null); },
+  interactive() { interactive = !interactive; globe.setInteractive(interactive); log(`interactive ${interactive}`); },
+  quality() { const q = globe.quality === 'high' ? 'low' : 'high'; globe.setQuality(q); log(`quality ${q}`); },
+  async bench() { log('bench: idle spin 5 s'); globe.idle(true); globe._lastInput = -1e9; const s = []; const off = globe.on('frame', (p) => s.push(p.dt)); await new Promise((r) => setTimeout(r, 5000)); off(); globe.idle(idleOn); const avg = s.reduce((a, b) => a + b, 0) / s.length; log(`bench: ${s.length} frames, ${(1 / avg).toFixed(1)} fps avg, worst ${(Math.max(...s) * 1000).toFixed(1)} ms`); window.__bench = { frames: s.length, fps: 1 / avg, worstMs: Math.max(...s) * 1000 }; },
+  hideUi() { document.body.classList.toggle('hide-ui'); },
+};
+for (const s of ['target', 'focus', 'correct', 'wrong']) actions[`hl:${s}`] = () => { globe.highlight(current, s); log(`highlight ${current} ${s}`); };
+for (const r of ['Europe', 'Africa', 'Asia', 'Americas', 'Oceania', 'null']) actions[`region:${r}`] = () => globe.setRegionFocus(r === 'null' ? null : r);
+$('panel').addEventListener('click', (e) => { const a = e.target.closest('button')?.dataset.a; if (a && actions[a]) actions[a](); });
+window.actions = actions;
+
+function dist(a, b) {
+  const r = Math.PI / 180, dLat = (b[0] - a[0]) * r, dLng = (b[1] - a[1]) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+if (innerWidth > 700) globe.setViewOffset({ x: 120, y: 0 }, { animate: false });
+else globe.setViewOffset({ x: 0, y: -70 }, { animate: false });
+log(`ready in ${tReady.toFixed(0)} ms`);
+</script>
+</body>
+</html>

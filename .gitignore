@@ -1,0 +1,10 @@
+dist/
+tools/node_modules/
+tools/.cache/
+tools/*/_out/
+tools/seo/indexnow-key.txt
+src/globe/_shots/
+.wrangler/
+.DS_Store
+ios/build/
+ios/**/xcuserdata/
